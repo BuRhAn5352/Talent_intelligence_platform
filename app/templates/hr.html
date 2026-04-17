@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back">← Back</a>
+        <h1>HR Job Analysis</h1>
+        <p class="subtitle">Upload a job description to get market intelligence instantly.</p>
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <div class="form-card">
+            <form action="/hr/analyze" method="post" enctype="multipart/form-data">
+                <div class="upload-area">
+                    <input type="file" name="files" id="file" accept=".pdf,.docx" multiple required>
+                    <label for="file">
+                        <div class="upload-icon">↑</div>
+                        <div>Drop your job description here</div>
+                        <div class="upload-hint">PDF or DOCX</div>
+                    </label>
+                </div>
+                <button type="submit" class="submit-btn">Analyze Job Description</button>
+            </form>
+        </div>
+    </div>
+<script>
+document.getElementById('file').addEventListener('change', function() {
+    const label = this.nextElementSibling;
+    if (this.files.length > 0) {
+        label.querySelector('div:nth-child(2)').textContent = this.files[0].name;
+    }
+});
+</script>
+</body>
+</html>

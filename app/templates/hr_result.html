@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Analysis Results</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="/hr" class="back">← Analyze More</a>
+        <h1>Job Analysis Results</h1>
+        <p class="subtitle">{{ total }} file{{ 's' if total > 1 else '' }} analyzed</p>
+
+        {% for result in results %}
+        <div class="resume-block">
+            <div class="resume-header">
+                <span class="filename">{{ result.filename }}</span>
+            </div>
+
+            <div class="results-grid">
+                <div class="result-card highlight">
+                    <div class="result-label">Industry</div>
+                    <div class="result-value">{{ result.industry }}</div>
+                    <div class="result-sub">{{ result.confidence }}% confidence</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-label">Role cluster</div>
+                    <div class="result-value">{{ result.cluster_name }}</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-label">Experience benchmark</div>
+                    <div class="result-value">{{ result.exp_range }}</div>
+                    <div class="result-sub">Typical for this role</div>
+                </div>
+            </div>
+
+            {% if result.top_topics %}
+            <div class="topics-section">
+                <h3>Skill themes detected</h3>
+                <div class="topics-grid">
+                    {% for topic_id, score in result.top_topics %}
+                    <div class="topic-pill">
+                        Topic {{ topic_id }} · {{ (score * 100) | round(1) }}%
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <a href="/hr" class="btn">Analyze More</a>
+    </div>
+</body>
+</html>

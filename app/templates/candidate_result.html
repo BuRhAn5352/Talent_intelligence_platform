@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Career Analysis</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="/candidate" class="back">← Analyze Again</a>
+        <h1>Your Career Analysis</h1>
+
+        <div class="results-grid">
+            <div class="result-card highlight">
+                <div class="result-label">Best fit industry</div>
+                <div class="result-value">{{ result.industry }}</div>
+                <div class="result-sub">{{ result.confidence }}% confidence</div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-label">Role cluster</div>
+                <div class="result-value">{{ result.cluster_name }}</div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-label">Cluster match score</div>
+                <div class="result-value">{{ result.match_score }}%</div>
+                <div class="result-sub">Similarity to this role cluster</div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-label">Experience benchmark</div>
+                <div class="result-value">{{ result.exp_range }}</div>
+                <div class="result-sub">Typical for this cluster</div>
+            </div>
+
+            {% if result.exp_gap > 0 %}
+            <div class="result-card warning">
+                <div class="result-label">Experience gap</div>
+                <div class="result-value">{{ result.exp_gap }} years</div>
+                <div class="result-sub">Below cluster minimum</div>
+            </div>
+            {% else %}
+            <div class="result-card success">
+                <div class="result-label">Experience</div>
+                <div class="result-value">On track</div>
+                <div class="result-sub">Meets cluster requirements</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="topics-section">
+            <h3>Skill themes in your resume</h3>
+            <div class="topics-grid">
+                {% for topic_id, score in result.top_topics %}
+                <div class="topic-pill">
+                    Topic {{ topic_id }} · {{ (score * 100) | round(1) }}%
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <a href="/candidate" class="btn">Analyze Again</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back">← Back</a>
+        <h1>Resume Analysis</h1>
+        <p class="subtitle">Upload your resume and tell us about your experience.</p>
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <div class="form-card">
+            <form action="/candidate/analyze" method="post" enctype="multipart/form-data">
+                <div class="upload-area">
+                    <input type="file" name="file" id="file" accept=".pdf,.docx" required>
+                    <label for="file">
+                        <div class="upload-icon">↑</div>
+                        <div>Drop your resume here</div>
+                        <div class="upload-hint">PDF or DOCX</div>
+                    </label>
+                </div>
+
+                <div class="form-fields">
+                    <div class="field">
+                        <label>Minimum experience (years)</label>
+                        <input type="number" name="min_exp" min="0" max="30" required placeholder="e.g. 2">
+                    </div>
+
+                    <div class="field">
+                        <label>Maximum experience (years)</label>
+                        <input type="number" name="max_exp" min="0" max="30" required placeholder="e.g. 5">
+                    </div>
+
+                    <div class="field">
+                        <label>Your main skill area</label>
+                        <select name="skill_category" required>
+                            <option value="">Select skill area</option>
+                            <option value="application programming">Application Programming</option>
+                            <option value="web development">Web Development</option>
+                            <option value="qa testing">QA & Testing</option>
+                            <option value="network administration">Network Administration</option>
+                            <option value="accounts">Accounts & Finance</option>
+                            <option value="sales">Sales</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="hr">Human Resources</option>
+                            <option value="teaching">Teaching</option>
+                            <option value="medical">Medical</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Analyze My Resume</button>
+            </form>
+        </div>
+    </div>
+<script>
+    document.getElementById('file').addEventListener('change', function() {
+    const label = this.nextElementSibling;
+    if (this.files.length > 0) {
+        label.querySelector('div:nth-child(2)').textContent = this.files[0].name;
+    }
+});
+</script>
+</body>
+</html>
