@@ -16,6 +16,9 @@
         <div class="resume-block">
             <div class="resume-header">
                 <span class="filename">{{ result.filename }}</span>
+                {% if result.confidence < 65 %}
+                <span class="badge warning">Low confidence</span>
+                {% endif %}
             </div>
 
             <div class="results-grid">
@@ -35,17 +38,50 @@
                     <div class="result-value">{{ result.exp_range }}</div>
                     <div class="result-sub">Typical for this role</div>
                 </div>
+
+                {% if result.salary %}
+                <div class="result-card salary">
+                    <div class="result-label">Market rate to offer</div>
+                    <div class="result-value">
+                        {{ result.salary.currency }}{{ "{:,}".format(result.salary.avg_min) }}
+                        –
+                        {{ result.salary.currency }}{{ "{:,}".format(result.salary.avg_max) }}
+                    </div>
+                    <div class="result-sub">
+                        Midpoint {{ result.salary.currency }}{{ "{:,}".format(result.salary.midpoint) }}
+                        · {{ result.salary.source }} market data
+                        · {{ result.salary.sample_size }} listings
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
+            <!-- SKILL GAP SECTION -->
             {% if result.top_topics %}
             <div class="topics-section">
-                <h3>Skill themes detected</h3>
+                <h3>Skill themes required</h3>
                 <div class="topics-grid">
-                    {% for topic_id, score in result.top_topics %}
-                    <div class="topic-pill">
-                        Topic {{ topic_id }} · {{ (score * 100) | round(1) }}%
-                    </div>
+                    {% for topic_name, score in result.top_topics %}
+                    <div class="topic-pill">{{ topic_name }} · {{ score }}%</div>
                     {% endfor %}
+                </div>
+
+                <div class="skill-gap-box info-box">
+                    <h4>📋 Hiring guidance</h4>
+                    <p>
+                        This role falls under <strong>{{ result.cluster_name }}</strong>.
+                        The dominant skill theme is
+                        <strong>{{ result.top_topics[0][0] }}</strong>
+                        ({{ result.top_topics[0][1] }}% weight).
+                    </p>
+                    <p>
+                        When screening candidates, prioritize experience in
+                        <strong>{{ result.top_topics[0][0] }}</strong>
+                        {% if result.top_topics|length > 1 %}
+                        and secondary skills in <strong>{{ result.top_topics[1][0] }}</strong>
+                        {% endif %}
+                        within the {{ result.exp_range }} experience band.
+                    </p>
                 </div>
             </div>
             {% endif %}
