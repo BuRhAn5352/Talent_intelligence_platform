@@ -1,5 +1,6 @@
 import os
 import joblib
+import requests
 import pandas as pd
 from gensim.utils import simple_preprocess
 from sklearn.metrics.pairwise import cosine_similarity
@@ -19,6 +20,19 @@ dictionary    = joblib.load(os.path.join(MODEL_DIR, 'lda_dictionary.pkl'))
 le_skills     = joblib.load(os.path.join(MODEL_DIR, 'le_skills.pkl'))
 cluster_names = joblib.load(os.path.join(MODEL_DIR, 'cluster_names.pkl'))
 
+TOPIC_NAMES = {
+    0: "Education & Academic Research",
+    1: "Sales & Business Development",
+    2: "QA & Software Development",
+    3: "General Management & Leadership",
+    4: "IT Infrastructure & Networking",
+    5: "Web & Application Development",
+    6: "Healthcare & Medical Recruitment",
+    7: "BPO & Customer Service",
+    8: "SAP & Enterprise Systems",
+    9: "Digital Marketing & Media"
+}
+
 # Cluster experience ranges from your analysis
 CLUSTER_EXP = {
     0: (2,6), 1:(4,9), 2: (1,4),
@@ -26,6 +40,66 @@ CLUSTER_EXP = {
     6: (3, 7),   7: (6, 10),  8: (5, 9),
     9: (3, 7)
 }
+
+def get_salary_benchmark(cluster_name: str):
+    APP_ID = "bce508a8"
+    APP_KEY = "b0b88963bc5aeb28f604d7012533c6ba"
+
+    keyword_map = {
+        "Corporate Finance, Marketing & Business Ops": "finance manager",
+        "Strategic Sales & Business Development": "business development",
+        "Human Resources & Talent Management": "HR manager",
+        "Clinical Research & Industrial Production": "clinical research",
+        "Academic Instruction & Training": "teacher trainer",
+        "University Faculty & Advanced Research": "research professor",
+        "Enterprise ERP Consulting & Systems": "SAP consultant",
+        "Associate Operations & Service Delivery": "operations executive",
+        "Mid-Senior Software Engineering": "software engineer",
+        "Full-Stack & Mobile Product Development": "full stack developer",
+    }
+    query = keyword_map.get(cluster_name, cluster_name)
+
+    def fetch(country_code):
+        url = f"https://api.adzuna.com/v1/api/jobs/{country_code}/search/1"
+        params = {
+            "app_id": APP_ID,
+            "app_key": APP_KEY,
+            "what": query,
+            "results_per_page": 10,
+            "content-type": "application/json"
+        }
+        return requests.get(url, params=params, timeout=5).json()
+
+    try:
+        data = fetch("in")
+        results = data.get("results", [])
+        currency = "₹"
+        salaries = [r for r in results if r.get("salary_min") and r.get("salary_max")]
+
+        # Fallback to GB if India has no salary data (not just no results)
+        if not salaries:
+            data = fetch("gb")
+            results = data.get("results", [])
+            currency = "£"
+            salaries = [r for r in results if r.get("salary_min") and r.get("salary_max")]
+
+        if not salaries:
+            return None
+
+        avg_min = sum(r["salary_min"] for r in salaries) / len(salaries)
+        avg_max = sum(r["salary_max"] for r in salaries) / len(salaries)
+
+        return {
+            "avg_min": round(avg_min),
+            "avg_max": round(avg_max),
+            "midpoint": round((avg_min + avg_max) / 2),
+            "currency": currency,
+            "source": "India" if currency == "₹" else "UK (benchmark)",
+            "sample_size": len(salaries)
+        }
+    except Exception as e:
+        print(f"Salary API error: {e}")
+        return None
 
  #Stopwords for LDA
 STOPWORDS = {
@@ -88,6 +162,7 @@ def analyze_job(text, skill_category='application programming'):
 
     cluster_id, cluster_label = _get_cluster(vec, industry, skill_category,3,7)
     exp_min , exp_max = CLUSTER_EXP.get(cluster_id, (2,6))
+    salary = get_salary_benchmark(cluster_label)
 
     return {
         'industry': industry,
@@ -95,7 +170,8 @@ def analyze_job(text, skill_category='application programming'):
         'cluster_id': cluster_id,
         'cluster_name': cluster_label,
         'exp_range': f'{exp_min}–{exp_max} years',
-        'top_topics': top_topics
+        'top_topics': [(TOPIC_NAMES.get(i, f"Topic {i}"), round(s*100, 1)) for i, s in top_topics],
+        'salary': salary
     }
 
 
@@ -118,6 +194,7 @@ def analyze_resume(text, min_exp,max_exp, skill_category):
     match_score = get_cluster_match_score(vec, cluster_id)    #skill gap compare candidate exp to cluster expectatioins
     exp_min, exp_max = CLUSTER_EXP.get(cluster_id,(2 ,6))
     exp_gap = max(0,exp_min - min_exp)
+    salary = get_salary_benchmark(cluster_label)
 
     return {
         'industry': industry,
@@ -126,8 +203,9 @@ def analyze_resume(text, min_exp,max_exp, skill_category):
         'cluster_name': cluster_label,
         'exp_range': f'{exp_min}–{exp_max} years',
         'exp_gap': exp_gap,
-        'top_topics': top_topics,
-        'match_score': match_score
+        'top_topics': [(TOPIC_NAMES.get(i, f"Topic {i}"), round(s*100, 1)) for i, s in top_topics],
+        'match_score': match_score,
+        'salary': salary 
     }
 
 if __name__ == "__main__":
