@@ -48,18 +48,75 @@
                 <div class="result-sub">Meets cluster requirements</div>
             </div>
             {% endif %}
+
+            {% if result.salary %}
+            <div class="result-card salary">
+                <div class="result-label">Expected salary range</div>
+                <div class="result-value">
+                    {{ result.salary.currency }}{{ "{:,}".format(result.salary.avg_min) }}
+                    –
+                    {{ result.salary.currency }}{{ "{:,}".format(result.salary.avg_max) }}
+                </div>
+                <div class="result-sub">
+                    Midpoint {{ result.salary.currency }}{{ "{:,}".format(result.salary.midpoint) }}
+                    · {{ result.salary.source }} market data
+                    · {{ result.salary.sample_size }} listings
+                </div>
+            </div>
+            {% endif %}
         </div>
 
+        <!-- SKILL GAP SECTION -->
+        {% if result.top_topics %}
         <div class="topics-section">
             <h3>Skill themes in your resume</h3>
             <div class="topics-grid">
-                {% for topic_id, score in result.top_topics %}
-                <div class="topic-pill">
-                    Topic {{ topic_id }} · {{ (score * 100) | round(1) }}%
-                </div>
+                {% for topic_name, score in result.top_topics %}
+                <div class="topic-pill">{{ topic_name }} · {{ score }}%</div>
                 {% endfor %}
             </div>
+
+            {% if result.exp_gap > 0 %}
+            <div class="skill-gap-box warning-box">
+                <h4>⚠ Skill gap detected</h4>
+                <p>
+                    You are <strong>{{ result.exp_gap }} year{{ 's' if result.exp_gap > 1 else '' }}</strong>
+                    below the minimum experience for the
+                    <strong>{{ result.cluster_name }}</strong> cluster
+                    (requires {{ result.exp_range }}).
+                </p>
+                <p>
+                    Focus on strengthening your top skill theme —
+                    <strong>{{ result.top_topics[0][0] }}</strong> —
+                    and consider roles in adjacent clusters with lower experience requirements.
+                </p>
+            </div>
+            {% elif result.match_score < 50 %}
+            <div class="skill-gap-box warning-box">
+                <h4>⚠ Low cluster alignment</h4>
+                <p>
+                    Your resume matches <strong>{{ result.match_score }}%</strong>
+                    of the typical language used in
+                    <strong>{{ result.cluster_name }}</strong> roles.
+                </p>
+                <p>
+                    Tailor your resume to include more keywords relevant to
+                    <strong>{{ result.top_topics[0][0] }}</strong> —
+                    your strongest detected skill area.
+                </p>
+            </div>
+            {% else %}
+            <div class="skill-gap-box success-box">
+                <h4>✓ Strong profile</h4>
+                <p>
+                    Your experience and skill themes align well with
+                    <strong>{{ result.cluster_name }}</strong> roles.
+                    Your strongest area is <strong>{{ result.top_topics[0][0] }}</strong>.
+                </p>
+            </div>
+            {% endif %}
         </div>
+        {% endif %}
 
         <a href="/candidate" class="btn">Analyze Again</a>
     </div>
