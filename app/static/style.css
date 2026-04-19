@@ -299,3 +299,80 @@ h1 {
     font-size: 1rem;
     color: #1a1a1a;
 }
+
+
+.result-card.salary {
+    border-color: #6366f1;
+    background: #f5f3ff;
+}
+
+.resume-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.badge.warning {
+    background: #fff3cd;
+    color: #92400e;
+    border: 1px solid #f0a500;
+}
+.skill-gap-box {
+    margin-top: 20px;
+    border-radius: 10px;
+    padding: 20px 24px;
+}
+
+.skill-gap-box h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.skill-gap-box p {
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: #444;
+    margin-bottom: 6px;
+}
+
+.skill-gap-box p:last-child {
+    margin-bottom: 0;
+}
+
+.warning-box {
+    background: #fffbf0;
+    border: 1px solid #f0a500;
+}
+
+.warning-box h4 {
+    color: #92400e;
+}
+
+.success-box {
+    background: #f0fdf4;
+    border: 1px solid #22c55e;
+}
+
+.success-box h4 {
+    color: #15803d;
+}
+
+.info-box {
+    background: #eff6ff;
+    border: 1px solid #93c5fd;
+}
+
+.info-box h4 {
+    color: #1d4ed8;
+}
