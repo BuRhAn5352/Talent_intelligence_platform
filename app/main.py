@@ -4,12 +4,14 @@ import pdfplumber
 import docx
 import pytesseract
 import fitz
+import shutil
 from PIL import Image
 from fastapi import FastAPI, Request, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from predictor import analyze_job, analyze_resume
+from collections import defaultdict
 
 app = FastAPI()
 
@@ -92,8 +94,20 @@ async def hr_analyze(request: Request, files: list[UploadFile] = File(...)):
             "error": "Could not read any uploaded files."
         })
 
+    # Group by cluster name, sorted by match score within each group
+    grouped = defaultdict(list)
+    for r in results:
+        grouped[r['cluster_name']].append(r)
+    
+    # Sort within each cluster by confidence descending
+    for cluster in grouped:
+        grouped[cluster].sort(key=lambda x: x['confidence'], reverse=True)
+    
+    # Convert to sorted list of (cluster_name, [results]) by group size descending
+    grouped_results = sorted(grouped.items(), key=lambda x: len(x[1]), reverse=True)
+
     return templates.TemplateResponse(request, "hr_result.html", {
-        "results": results,
+        "grouped_results": grouped_results,
         "total": len(results)
     })
 
@@ -101,9 +115,9 @@ async def hr_analyze(request: Request, files: list[UploadFile] = File(...)):
 async def candidate_analyze(
     request: Request,
     file: UploadFile = File(...),
-    min_exp: int = Form(...),
-    max_exp: int = Form(...),
-    skill_category: str = Form(...)
+    min_exp: int = Form(default=0),
+    max_exp: int = Form(default=5),
+    skill_category: str = Form(default="application programming")
 ):
     file_bytes = await file.read()
     try:
