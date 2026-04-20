@@ -17,7 +17,7 @@
         {% endif %}
 
         <div class="form-card">
-            <form action="/candidate/analyze" method="post" enctype="multipart/form-data">
+            <form action="/candidate/analyze" method="post" enctype="multipart/form-data" id="candidateForm">
                 <div class="upload-area">
                     <input type="file" name="file" id="file" accept=".pdf,.docx" required>
                     <label for="file">
@@ -27,20 +27,24 @@
                     </label>
                 </div>
 
+                <div id="exp-error" class="error" style="display:none; margin-bottom: 12px;">
+                    Maximum experience cannot be less than minimum experience.
+                </div>
+
                 <div class="form-fields">
                     <div class="field">
-                        <label>Minimum experience (years)</label>
-                        <input type="number" name="min_exp" min="0" max="30" required placeholder="e.g. 2">
+                        <label>Minimum experience (years) <span class="optional">optional</span></label>
+                        <input type="number" name="min_exp" id="min_exp" min="0" max="30" placeholder="e.g. 2">
                     </div>
 
                     <div class="field">
-                        <label>Maximum experience (years)</label>
-                        <input type="number" name="max_exp" min="0" max="30" required placeholder="e.g. 5">
+                        <label>Maximum experience (years) <span class="optional">optional</span></label>
+                        <input type="number" name="max_exp" id="max_exp" min="0" max="30" placeholder="e.g. 5">
                     </div>
 
                     <div class="field">
-                        <label>Your main skill area</label>
-                        <select name="skill_category" required>
+                        <label>Your main skill area <span class="optional">optional</span></label>
+                        <select name="skill_category">
                             <option value="">Select skill area</option>
                             <option value="application programming">Application Programming</option>
                             <option value="web development">Web Development</option>
@@ -60,13 +64,30 @@
             </form>
         </div>
     </div>
+
 <script>
     document.getElementById('file').addEventListener('change', function() {
-    const label = this.nextElementSibling;
-    if (this.files.length > 0) {
-        label.querySelector('div:nth-child(2)').textContent = this.files[0].name;
-    }
-});
+        const label = this.nextElementSibling;
+        if (this.files.length > 0) {
+            label.querySelector('div:nth-child(2)').textContent = this.files[0].name;
+        }
+    });
+
+    document.getElementById('candidateForm').addEventListener('submit', function(e) {
+        const min = document.getElementById('min_exp').value;
+        const max = document.getElementById('max_exp').value;
+        const errBox = document.getElementById('exp-error');
+
+        // Only validate if both are filled
+        if (min !== '' && max !== '') {
+            if (parseInt(max) < parseInt(min)) {
+                e.preventDefault();
+                errBox.style.display = 'block';
+                return;
+            }
+        }
+        errBox.style.display = 'none';
+    });
 </script>
 </body>
 </html>
