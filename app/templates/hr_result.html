@@ -9,19 +9,33 @@
 <body>
     <div class="container">
         <a href="/hr" class="back">← Analyze More</a>
-        <h1>Job Analysis Results</h1>
-        <p class="subtitle">{{ total }} file{{ 's' if total > 1 else '' }} analyzed · grouped by role cluster</p>
+        <h1>Analysis Results</h1>
+        <p class="subtitle">{{ total }} file{{ 's' if total > 1 else '' }} · grouped by role · ranked by fit</p>
 
         {% for cluster_name, results in grouped_results %}
         <div class="cluster-group">
+
             <div class="cluster-group-header">
                 <span class="cluster-title">{{ cluster_name }}</span>
-                <span class="cluster-count">{{ results|length }} role{{ 's' if results|length > 1 else '' }}</span>
+                <span class="cluster-count">{{ results|length }} candidate{{ 's' if results|length > 1 else '' }}</span>
             </div>
 
             {% for result in results %}
-            <div class="resume-block">
+            {% set rank = loop.index %}
+            <div class="resume-block {% if rank == 1 %}top-pick{% endif %}">
+
                 <div class="resume-header">
+                    <div class="rank-badge-wrap">
+                        {% if rank == 1 %}
+                        <span class="rank-badge rank-1">Best fit</span>
+                        {% elif rank == 2 %}
+                        <span class="rank-badge rank-2">#2</span>
+                        {% elif rank == 3 %}
+                        <span class="rank-badge rank-3">#3</span>
+                        {% else %}
+                        <span class="rank-badge rank-n">#{{ rank }}</span>
+                        {% endif %}
+                    </div>
                     <span class="filename">{{ result.filename }}</span>
                     {% if result.confidence < 50 %}
                     <span class="badge warning">Low confidence</span>
@@ -30,35 +44,24 @@
 
                 <div class="results-grid">
 
-                    <!-- PRIMARY: Best fit role (most reliable signal) -->
                     <div class="result-card highlight">
                         <div class="result-label">Best fit role</div>
                         <div class="result-value">{{ result.secondary_role }}</div>
-                        <div class="result-sub">Based on skill signal detection</div>
+                        <div class="result-sub">Keyword detection</div>
                     </div>
 
-                    <!-- Role cluster -->
                     <div class="result-card">
-                        <div class="result-label">Role cluster</div>
-                        <div class="result-value">{{ result.cluster_name }}</div>
-                        <div class="result-sub">ML cluster assignment</div>
-                    </div>
-
-                    <!-- Industry -->
-                    <div class="result-card">
-                        <div class="result-label">Industry detected</div>
+                        <div class="result-label">Industry</div>
                         <div class="result-value">{{ result.industry }}</div>
                         <div class="result-sub">{{ result.confidence }}% confidence</div>
                     </div>
 
-                    <!-- Experience -->
                     <div class="result-card">
                         <div class="result-label">Experience benchmark</div>
                         <div class="result-value">{{ result.exp_range }}</div>
                         <div class="result-sub">Typical for this role</div>
                     </div>
 
-                    <!-- Salary — always shown -->
                     <div class="result-card salary">
                         <div class="result-label">Market rate to offer</div>
                         <div class="result-value">
@@ -67,10 +70,8 @@
                             {{ result.salary.currency }}{{ "{:,}".format(result.salary.avg_max) }}
                         </div>
                         <div class="result-sub">
-                            Midpoint {{ result.salary.currency }}{{ "{:,}".format(result.salary.midpoint) }}
-                            · {{ result.salary.source }}
-                            {% if result.salary.sample_size > 0 %}· {{ result.salary.sample_size }} listings{% endif %}
-                            {% if result.salary.is_estimate %}<span class="est-badge">estimate</span>{% endif %}
+                            {{ result.salary.source }}
+                            {% if result.salary.is_estimate %}<span class="est-badge">est</span>{% endif %}
                         </div>
                     </div>
 
@@ -84,20 +85,10 @@
                         <div class="topic-pill">{{ topic_name }} · {{ score }}%</div>
                         {% endfor %}
                     </div>
-
                     <div class="skill-gap-box info-box">
-                        <h4>📋 Hiring guidance</h4>
-                        <p>
-                            Dominant skill theme: <strong>{{ result.top_topics[0][0] }}</strong>
-                            ({{ result.top_topics[0][1] }}% weight).
-                        </p>
-                        <p>
-                            Look for candidates with <strong>{{ result.secondary_role }}</strong> background
-                            {% if result.top_topics|length > 1 %}
-                            and secondary skills in <strong>{{ result.top_topics[1][0] }}</strong>
-                            {% endif %}
-                            · Target {{ result.exp_range }} experience band.
-                        </p>
+                        <h4>Hiring guidance</h4>
+                        <p>Dominant theme: <strong>{{ result.top_topics[0][0] }}</strong> ({{ result.top_topics[0][1] }}%).</p>
+                        <p>Look for <strong>{{ result.secondary_role }}</strong> background{% if result.top_topics|length > 1 %} with secondary skills in <strong>{{ result.top_topics[1][0] }}</strong>{% endif %} · {{ result.exp_range }} experience band.</p>
                     </div>
                 </div>
                 {% endif %}
