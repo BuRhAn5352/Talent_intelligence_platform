@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Candidate Dashboard</title>
+    <title>Candidate Analysis</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <a href="/" class="back">← Back</a>
         <h1>Resume Analysis</h1>
-        <p class="subtitle">Upload your resume and tell us about your experience.</p>
+        <p class="subtitle">Upload your resume to get role fit, salary range, and skill gaps</p>
 
         {% if error %}
         <div class="error">{{ error }}</div>
@@ -22,69 +22,67 @@
                     <input type="file" name="file" id="file" accept=".pdf,.docx" required>
                     <label for="file">
                         <div class="upload-icon">↑</div>
-                        <div>Drop your resume here</div>
+                        <div>Drop your resume here or click to browse</div>
                         <div class="upload-hint">PDF or DOCX</div>
                     </label>
                 </div>
 
                 <div id="exp-error" class="error" style="display:none; margin-bottom: 12px;">
-                    Maximum experience cannot be less than minimum experience.
+                    Max experience cannot be less than minimum.
                 </div>
 
                 <div class="form-fields">
                     <div class="field">
-                        <label>Minimum experience (years) <span class="optional">optional</span></label>
-                        <input type="number" name="min_exp" id="min_exp" min="0" max="30" placeholder="e.g. 2">
+                        <label>Min experience (yrs) <span class="optional">optional</span></label>
+                        <input type="number" name="min_exp" id="min_exp" min="0" max="30" placeholder="0">
                     </div>
-
                     <div class="field">
-                        <label>Maximum experience (years) <span class="optional">optional</span></label>
-                        <input type="number" name="max_exp" id="max_exp" min="0" max="30" placeholder="e.g. 5">
+                        <label>Max experience (yrs) <span class="optional">optional</span></label>
+                        <input type="number" name="max_exp" id="max_exp" min="0" max="30" placeholder="5">
                     </div>
-
                     <div class="field">
-                        <label>Your main skill area <span class="optional">optional</span></label>
+                        <label>Skill area <span class="optional">optional</span></label>
                         <select name="skill_category">
-                            <option value="">Select skill area</option>
+                            <option value="">Select area</option>
                             <option value="application programming">Application Programming</option>
                             <option value="web development">Web Development</option>
+                            <option value="mobile">Mobile Development</option>
                             <option value="qa testing">QA & Testing</option>
                             <option value="network administration">Network Administration</option>
                             <option value="accounts">Accounts & Finance</option>
+                            <option value="financial services">Financial Services</option>
                             <option value="sales">Sales</option>
                             <option value="marketing">Marketing</option>
                             <option value="hr">Human Resources</option>
                             <option value="teaching">Teaching</option>
                             <option value="medical">Medical</option>
+                            <option value="analytics business intelligence">Analytics & BI</option>
+                            <option value="erp">ERP</option>
+                            <option value="design">Design</option>
+                            <option value="legal">Legal</option>
+                            <option value="strategy">Strategy</option>
                         </select>
                     </div>
                 </div>
 
-                <button type="submit" class="submit-btn">Analyze My Resume</button>
+                <button type="submit" class="submit-btn">Analyze Resume</button>
             </form>
         </div>
     </div>
-
 <script>
     document.getElementById('file').addEventListener('change', function() {
         const label = this.nextElementSibling;
-        if (this.files.length > 0) {
+        if (this.files.length > 0)
             label.querySelector('div:nth-child(2)').textContent = this.files[0].name;
-        }
     });
-
     document.getElementById('candidateForm').addEventListener('submit', function(e) {
         const min = document.getElementById('min_exp').value;
         const max = document.getElementById('max_exp').value;
         const errBox = document.getElementById('exp-error');
-
-        // Only validate if both are filled
-        if (min !== '' && max !== '') {
-            if (parseInt(max) < parseInt(min)) {
-                e.preventDefault();
-                errBox.style.display = 'block';
-                return;
-            }
+        if (min !== '' && max !== '' && parseInt(max) < parseInt(min)) {
+            e.preventDefault();
+            errBox.style.display = 'block';
+            return;
         }
         errBox.style.display = 'none';
     });
