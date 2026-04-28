@@ -9,8 +9,8 @@
 <body>
     <div class="container">
         <a href="/" class="back">← Back</a>
-        <h1>HR Job Analysis</h1>
-        <p class="subtitle">Upload a job description to get market intelligence instantly.</p>
+        <h1>HR Analysis</h1>
+        <p class="subtitle">Upload resumes or job descriptions · up to 20 files</p>
 
         {% if error %}
         <div class="error">{{ error }}</div>
@@ -22,11 +22,11 @@
                     <input type="file" name="files" id="file" accept=".pdf,.docx" multiple required>
                     <label for="file">
                         <div class="upload-icon">↑</div>
-                        <div>Drop your job description here</div>
+                        <div>Drop files here or click to browse</div>
                         <div class="upload-hint">PDF or DOCX · up to 20 files</div>
                     </label>
                 </div>
-                <button type="submit" class="submit-btn">Analyze Job Description</button>
+                <button type="submit" class="submit-btn">Analyze</button>
             </form>
         </div>
     </div>
@@ -35,7 +35,7 @@ document.getElementById('file').addEventListener('change', function() {
     const label = this.nextElementSibling;
     const count = this.files.length;
     if (count > 0) {
-        label.querySelector('div:nth-child(2)').textContent = 
+        label.querySelector('div:nth-child(2)').textContent =
             count === 1 ? this.files[0].name : `${count} files selected`;
     }
 });
