@@ -9,24 +9,27 @@
 <body>
     <div class="container">
         <a href="/candidate" class="back">← Analyze Again</a>
-        <h1>Your Career Analysis</h1>
+        <h1>Career Analysis</h1>
+        <p class="subtitle">Based on your resume content</p>
 
         <div class="results-grid">
+
             <div class="result-card highlight">
-                <div class="result-label">Best fit industry</div>
-                <div class="result-value">{{ result.industry }}</div>
-                <div class="result-sub">{{ result.confidence }}% confidence</div>
+                <div class="result-label">Best fit role</div>
+                <div class="result-value">{{ result.secondary_role }}</div>
+                <div class="result-sub">Detected from resume keywords</div>
             </div>
 
             <div class="result-card">
                 <div class="result-label">Role cluster</div>
                 <div class="result-value">{{ result.cluster_name }}</div>
+                <div class="result-sub">ML classification · {{ result.match_score }}% match</div>
             </div>
 
             <div class="result-card">
-                <div class="result-label">Cluster match score</div>
-                <div class="result-value">{{ result.match_score }}%</div>
-                <div class="result-sub">Similarity to this role cluster</div>
+                <div class="result-label">Industry</div>
+                <div class="result-value">{{ result.industry }}</div>
+                <div class="result-sub">{{ result.confidence }}% model confidence</div>
             </div>
 
             <div class="result-card">
@@ -38,7 +41,7 @@
             {% if result.exp_gap > 0 %}
             <div class="result-card warning">
                 <div class="result-label">Experience gap</div>
-                <div class="result-value">{{ result.exp_gap }} years</div>
+                <div class="result-value">{{ result.exp_gap }} yr{{ 's' if result.exp_gap > 1 else '' }} short</div>
                 <div class="result-sub">Below cluster minimum</div>
             </div>
             {% else %}
@@ -49,7 +52,6 @@
             </div>
             {% endif %}
 
-            {% if result.salary %}
             <div class="result-card salary">
                 <div class="result-label">Expected salary range</div>
                 <div class="result-value">
@@ -59,14 +61,13 @@
                 </div>
                 <div class="result-sub">
                     Midpoint {{ result.salary.currency }}{{ "{:,}".format(result.salary.midpoint) }}
-                    · {{ result.salary.source }} market data
-                    · {{ result.salary.sample_size }} listings
+                    · {{ result.salary.source }}
+                    {% if result.salary.is_estimate %}<span class="est-badge">est</span>{% endif %}
                 </div>
             </div>
-            {% endif %}
+
         </div>
 
-        <!-- SKILL GAP SECTION -->
         {% if result.top_topics %}
         <div class="topics-section">
             <h3>Skill themes in your resume</h3>
@@ -78,41 +79,20 @@
 
             {% if result.exp_gap > 0 %}
             <div class="skill-gap-box warning-box">
-                <h4>⚠ Skill gap detected</h4>
-                <p>
-                    You are <strong>{{ result.exp_gap }} year{{ 's' if result.exp_gap > 1 else '' }}</strong>
-                    below the minimum experience for the
-                    <strong>{{ result.cluster_name }}</strong> cluster
-                    (requires {{ result.exp_range }}).
-                </p>
-                <p>
-                    Focus on strengthening your top skill theme —
-                    <strong>{{ result.top_topics[0][0] }}</strong> —
-                    and consider roles in adjacent clusters with lower experience requirements.
-                </p>
+                <h4>Experience gap detected</h4>
+                <p>You are <strong>{{ result.exp_gap }} year{{ 's' if result.exp_gap > 1 else '' }}</strong> below the minimum for <strong>{{ result.cluster_name }}</strong> (requires {{ result.exp_range }}).</p>
+                <p>Focus on deepening <strong>{{ result.top_topics[0][0] }}</strong> skills and consider adjacent clusters with lower requirements.</p>
             </div>
-            {% elif result.match_score < 50 %}
+            {% elif result.match_score < 10 %}
             <div class="skill-gap-box warning-box">
-                <h4>⚠ Low cluster alignment</h4>
-                <p>
-                    Your resume matches <strong>{{ result.match_score }}%</strong>
-                    of the typical language used in
-                    <strong>{{ result.cluster_name }}</strong> roles.
-                </p>
-                <p>
-                    Tailor your resume to include more keywords relevant to
-                    <strong>{{ result.top_topics[0][0] }}</strong> —
-                    your strongest detected skill area.
-                </p>
+                <h4>Low cluster alignment</h4>
+                <p>Your resume vocabulary has low overlap with typical <strong>{{ result.cluster_name }}</strong> roles.</p>
+                <p>Tailor your resume with more keywords relevant to <strong>{{ result.top_topics[0][0] }}</strong>.</p>
             </div>
             {% else %}
             <div class="skill-gap-box success-box">
-                <h4>✓ Strong profile</h4>
-                <p>
-                    Your experience and skill themes align well with
-                    <strong>{{ result.cluster_name }}</strong> roles.
-                    Your strongest area is <strong>{{ result.top_topics[0][0] }}</strong>.
-                </p>
+                <h4>Strong profile</h4>
+                <p>Your experience and skills align well with <strong>{{ result.cluster_name }}</strong> roles. Strongest theme: <strong>{{ result.top_topics[0][0] }}</strong>.</p>
             </div>
             {% endif %}
         </div>
