@@ -10,7 +10,6 @@ Upload a resume or job description and get instant intelligence — role classif
 
 | HR Dashboard | Candidate Dashboard |
 
-|---|---|
 | Upload up to 20 resumes at once | Upload your resume |
 | Resumes grouped by role cluster | Role cluster + industry detection |
 | Candidates ranked by fit score | Match score vs cluster centroid |
