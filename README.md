@@ -234,8 +234,7 @@ Topic coherence was clean and interpretable without it. The marginal improvement
 
 ## Built by
 
-**Burhanuddin Aliasgar Contractor**
-Final Year Capstone Project — Gandhinagar University
+**Burhan**
 
 ---
 
