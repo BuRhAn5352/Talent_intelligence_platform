@@ -98,6 +98,20 @@
         </div>
         {% endif %}
 
+        {% if result.suggestions %}
+        <div class="topics-section" style="margin-bottom: 20px;">
+            <h3>How to strengthen your resume</h3>
+            <div class="suggestions-list">
+                {% for tip in result.suggestions %}
+                <div class="suggestion-item">
+                    <span class="suggestion-num">{{ loop.index }}</span>
+                    <p>{{ tip }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <a href="/candidate" class="btn">Analyze Again</a>
     </div>
 </body>
