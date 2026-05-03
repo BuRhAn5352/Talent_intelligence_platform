@@ -391,7 +391,7 @@ def get_secondary_role(text):
             "kathak", "bharatanatyam", "classical dance", "ballet",
             "choreography", "salsa instructor", "theatre actor", "drama school",
         ],
-        # ── Core professional roles ────────────────────────────────────────────
+        # Core professional roles
         "Finance & Accounting": [
             "accountant", "accounts", "finance", "audit", "taxation", "gst",
             "tally", "ledger", "balance sheet", "payroll", "bookkeeping",
