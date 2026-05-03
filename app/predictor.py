@@ -38,7 +38,7 @@ TOPIC_NAMES = {
     7: "Healthcare & Pharma",
 }
 
-# Dominant LDA topic -> semantic cluster label
+# Dominant LDA topic = semantic cluster label
 # KMeans cluster IDs are NOT used for labelling (verified broken via grid search)
 TOPIC_TO_LABEL = {
     0: "Software Engineering & IT Development",
@@ -51,7 +51,7 @@ TOPIC_TO_LABEL = {
     7: "Healthcare & Life Sciences",
 }
 
-# Experience bands keyed by label 
+# Experience bands keyed by label
 LABEL_EXP = {
     "Industrial & Manufacturing Engineering": (3,  8),
     "Sales & Business Development":           (2,  7),
@@ -71,9 +71,10 @@ LABEL_EXP = {
     "Defence & Police":                       (2, 15),
     "Performing Arts":                        (1, 10),
     "School Teaching":                        (1,  8),
+    "Journalism & Media":                     (1,  8),
 }
 
-# Salary fallbacks (INR annual, India market 2024) 
+# Salary fallbacks (INR annual, India market 2024)
 SALARY_FALLBACK = {
     "Industrial & Manufacturing Engineering": (350000,   900000),
     "Sales & Business Development":           (300000,   900000),
@@ -92,6 +93,7 @@ SALARY_FALLBACK = {
     "Defence & Police":                       (300000,   700000),
     "Performing Arts":                        (100000,   500000),
     "School Teaching":                        (200000,   600000),
+    "Journalism & Media":                     (250000,   900000),
 }
 
 SALARY_QUERY_MAP = {
@@ -112,9 +114,10 @@ SALARY_QUERY_MAP = {
     "Defence & Police":                       "defence officer",
     "Performing Arts":                        "performing arts",
     "School Teaching":                        "school teacher",
+    "Journalism & Media":                     "journalist reporter",
 }
 
-# KMeans cluster mapping for match score only 
+# KMeans cluster mapping for match score only
 # Verified empirically: which centroid has highest cosine sim for each domain
 LABEL_TO_BEST_KMEANS = {
     "Industrial & Manufacturing Engineering": 0,
@@ -134,19 +137,28 @@ LABEL_TO_BEST_KMEANS = {
     "Defence & Police":                       0,
     "Performing Arts":                        6,
     "School Teaching":                        4,
+    "Journalism & Media":                     6, 
 }
 
-# Niche domains — fire BEFORE LDA 
-# These have zero Naukri training data. Strong keyword match overrides ML output
-# All keywords lowercase. min_req = minimum matches needed to trigger
+# Niche domains
+# These have zero Naukri training data. Strong keyword match overrides ML output.
+# All keywords lowercase. min_req = minimum matches needed to trigger.
 NICHE_DOMAINS = [
     (
         "Legal / Law", "Legal / Law",
         ["advocate", "llb", "barrister", "litigation", "legal counsel",
          "high court", "supreme court", "district court", "ipc", "crpc",
          "judiciary", "solicitor", "notary", "legal advisor"],
-        2,  # "advocate" alone too common — require 2
+        2, 
     ),
+    (
+        "Journalism & Media", "Editor",
+        ["journalist", "news reporter", "editor", "photojournalist",
+         "news anchor", "correspondent", "press release", "editorial",
+         "byline", "newsroom", "investigative report", "media house",
+         "broadcast journalism", "print media", "digital journalism"],
+         2, 
+),
     (
         "Government / Civil Services", "Government / Civil Services",
         ["upsc", "ias ", "ips ", "ifs ", "tehsildar", "collector office",
@@ -205,7 +217,7 @@ NICHE_DOMAINS = [
     ),
 ]
 
-# NLP helpers 
+# NLP helpers
 STOPWORDS = {
     'bangalore', 'hyderabad', 'mumbai', 'delhi', 'chennai', 'location',
     'current', 'job', 'years', 'experience', 'salary', 'apply', 'candidate',
@@ -222,7 +234,7 @@ def tokenize(text):
             if w not in STOPWORDS and len(w) > 2]
 
 
-# Core functions 
+#Core functions
 
 def _domain_override(text):
     """Returns (label, secondary) if a niche domain matches, else (None, None)."""
@@ -287,7 +299,7 @@ def _lda_label(text, topic_weights, dominant_topic):
         has_mfg = any(kw in t for kw in mfg_kws)
         if has_fin and not has_mfg:
             return "Generalist / Mixed Roles"
-        # both present or neither → use Industrial (manufacturing is more specific)
+        # both present or neither => use Industrial (manufacturing is more specific)
 
     # Topics 0 and 5 both strongly indicate software/IT
     if dominant_topic in (0, 5):
@@ -354,11 +366,18 @@ def get_secondary_role(text):
     """
     t = text.lower()
     role_keywords = {
-        #Niche (specific — checked first) 
+        # Niche (specific — checked first)
         "Legal / Law": [
             "advocate", "llb", "barrister", "litigation", "legal counsel",
             "high court", "ipc", "judiciary", "solicitor", "legal advisor",
         ],
+        "Journalism/Editor & Media":[
+            "journalist", "news reporter", "editor", "photojournalist",
+            "news anchor", "correspondent", "press release", "editorial",
+            "byline", "newsroom", "investigative report", "media house",
+            "broadcast journalism", "print media", "digital journalism"
+        ],
+        
         "Government / Civil Services": [
             "upsc", "ias ", "ips ", "tehsildar", "municipality",
             "gram panchayat", "civil servant", "gazette", "central government",
@@ -435,7 +454,87 @@ def get_secondary_role(text):
     return ", ".join(r for r, s in sorted_roles[:2] if s > 0)
 
 
-# Public API 
+
+def get_resume_suggestions(text, cluster_label, match_score, exp_gap, top_topics):
+    """
+    Generate 3-5 actionable resume improvement suggestions based on
+    the analysis results. Plain language, specific and useful.
+    """
+    t = text.lower()
+    suggestions = []
+
+    # Match score based
+    if match_score < 10:
+        suggestions.append("Your resume language doesn't closely match typical job postings in this field. Mirror the exact keywords from job descriptions you're targeting — role titles, tools, methodologies.")
+    elif match_score < 20:
+        suggestions.append("Strengthen keyword alignment — add more role-specific terms like job titles, tools, and technologies that appear in job postings for your target role.")
+
+    # Experience gap
+    if exp_gap > 0:
+        suggestions.append(f"You're {exp_gap} year{'s' if exp_gap > 1 else ''} short of the typical minimum for this cluster. Consider applying to junior or associate-level roles, or highlight internships, freelance, and project work to compensate.")
+
+    # Cluster-specific advice
+    cluster_tips = {
+        "Software Engineering & IT Development": [
+            "Add a GitHub link or portfolio URL — most SWE roles expect to see actual code.",
+            "Quantify your impact: 'Reduced API response time by 40%' beats 'Improved performance'.",
+            "List your tech stack clearly at the top — recruiters scan for specific languages and frameworks.",
+        ],
+        "Sales & Business Development": [
+            "Add revenue numbers — 'Closed ₹1.2Cr in Q3' is far more powerful than 'Met sales targets'.",
+            "Mention your sales cycle length and deal sizes if B2B — this signals seniority.",
+            "Include CRM tools you've used (Salesforce, HubSpot) — they're often filtered for.",
+        ],
+        "Human Resources & Talent Management": [
+            "Mention volume metrics — 'Hired 45 engineers in 6 months' shows scale of work.",
+            "List HRIS platforms you've used (Darwinbox, SAP, Workday) — these are often required.",
+            "Add retention or engagement numbers if you have them — HR is increasingly data-driven.",
+        ],
+        "Academia & Higher Education": [
+            "List publications, conferences, or research papers even if unpublished — academic roles expect this.",
+            "Mention your h-index or Google Scholar profile if you have one.",
+            "Include courses taught, student count, and exam results if available.",
+        ],
+        "Industrial & Manufacturing Engineering": [
+            "Add certifications like Six Sigma, ISO, or Lean — these are strong signals in manufacturing.",
+            "Quantify efficiency improvements: 'Reduced downtime by 18%' is concrete and impressive.",
+            "Mention ERP systems you've worked with (SAP, Oracle) if applicable.",
+        ],
+        "Customer Support & Operations": [
+            "Add CSAT or NPS scores if you have them — customer support is metric-driven.",
+            "Mention ticket volumes handled and resolution times to show scale.",
+            "List CRM tools used (Zendesk, Freshdesk, Salesforce) — they're commonly required.",
+        ],
+        "Healthcare & Life Sciences": [
+            "List regulatory knowledge explicitly: GCP, GMP, ICH guidelines, CDSCO — these are screened for.",
+            "Add clinical trial phases you've worked on if applicable.",
+            "Certifications like RAC or pharmacovigilance training are strong differentiators.",
+        ],
+        "Generalist / Mixed Roles": [
+            "Your resume covers multiple domains — consider creating a focused version targeting one specific role type.",
+            "Pick your strongest domain and lead with it in your summary section.",
+        ],
+    }
+
+    tips = cluster_tips.get(cluster_label, [])
+    suggestions.extend(tips[:2])  # add up to 2 cluster-specific tips
+
+    # Generic always-useful advice
+    if "summary" not in t and "objective" not in t and "profile" not in t:
+        suggestions.append("Add a 2-3 line professional summary at the top of your resume — it's the first thing recruiters read and sets context for everything below.")
+
+    if not any(w in t for w in ["%", "₹", "cr", "lakh", "revenue", "increased", "reduced", "improved", "achieved"]):
+        suggestions.append("Quantify your achievements with numbers. Even rough figures (team size, budgets, timelines, percentages) make your resume significantly more credible.")
+
+    # LDA topic mismatch warning
+    if top_topics:
+        top_topic_name = top_topics[0][0]
+        if top_topics[0][1] < 20:
+            suggestions.append(f"Your resume doesn't have a strong dominant skill theme — '{top_topic_name}' is your top area at only {top_topics[0][1]}%. Try to make your core expertise clearer by leading with your strongest skills.")
+
+    return suggestions[:5]  # cap at 5 suggestions
+
+# Public API
 
 def analyze_resume(text, min_exp, max_exp, skill_category):
     if not text or len(text.strip()) < 15:
@@ -459,6 +558,8 @@ def analyze_resume(text, min_exp, max_exp, skill_category):
     exp_gap          = max(0, exp_min - min_exp)
     salary           = get_salary_benchmark(cluster_label)
 
+    suggestions = get_resume_suggestions(text, cluster_label, match_score, exp_gap, top_topics)
+
     return {
         "industry":       display_industry,
         "confidence":     confidence,
@@ -469,6 +570,7 @@ def analyze_resume(text, min_exp, max_exp, skill_category):
         "exp_gap":        exp_gap,
         "salary":         salary,
         "top_topics":     top_topics,
+        "suggestions":    suggestions,
     }
 
 
@@ -502,7 +604,6 @@ def analyze_job(text, skill_category="application programming"):
         "salary":         salary,
         "top_topics":     top_topics,
     }
-
 
 if __name__ == "__main__":
     tests = [
