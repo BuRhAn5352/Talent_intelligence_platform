@@ -1,6 +1,6 @@
 # Talent Intelligence Platform
 
-> AI-powered job market analytics for HR professionals and job seekers — built on 22,000 Indian job listings.
+> AI-powered job market analytics for HR professionals and job seekers, built on 22,000 Indian job listings.
 
 ## What it does
 
